@@ -1,6 +1,10 @@
+import './css/pin.css';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function ChangePin() {
+  const navigate = useNavigate();
+
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -18,17 +22,37 @@ function ChangePin() {
     setConfirmPin(event.target.value);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    // Perform change PIN logic here
-    // Replace the code below with your actual implementation
     if (currentPin && newPin && confirmPin) {
       if (newPin === confirmPin) {
-        setMessage('PIN changed successfully');
-        setCurrentPin('');
-        setNewPin('');
-        setConfirmPin('');
+        try {
+          const response = await fetch('https://localhost:7161/api/Signup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              currentPin,
+              newPin,
+              confirmPin
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            setMessage(data.message);
+            setCurrentPin('');
+            setNewPin('');
+            setConfirmPin('');
+          } else {
+            setMessage(data.error);
+          }
+        } catch (error) {
+          setMessage('An error occurred. Please try again.');
+        }
       } else {
         setMessage('New PIN and Confirm PIN do not match');
       }
@@ -38,9 +62,9 @@ function ChangePin() {
   }
 
   return (
-    <div className="change-pin">
+    <div className="changepin-container">
       <h1>Change PIN</h1>
-      <form onSubmit={handleSubmit}>
+      <form className="form-pin" onSubmit={handleSubmit}>
         <label htmlFor="currentPin">Current PIN:</label>
         <input
           type="password"
@@ -67,14 +91,15 @@ function ChangePin() {
         />
         <button type="submit">Change PIN</button>
       </form>
+
       {message && <p className="message">{message}</p>}
-      <ul>
-      <li>
-          <a href="/Menu">Exit</a>
-        </li>
-        </ul>
+
+      <button className="return" onClick={() => navigate('/menu')}>
+        Exit
+      </button>
     </div>
   );
 }
 
 export default ChangePin;
+
