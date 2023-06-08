@@ -87,5 +87,48 @@ namespace ATM_project.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        [HttpPost]
+        public IActionResult UpdatePin([FromBody] ChangePinRequest request)
+        {
+            string currentPin = request.CurrentPin;
+            string newPin = request.NewPin;
+            string confirmPin = request.ConfirmPin;
+
+            if (newPin != confirmPin)
+            {
+                return BadRequest(new { error = "New PIN and Confirm PIN do not match" });
+            }
+
+            string connectionString = @"Data Source=DESKTOP-GMP1P5K;Initial Catalog=atmproject;Integrated Security=True; Encrypt=False";
+            string updateQuery = "UPDATE signup SET Pin = @NewPin WHERE Pin = @CurrentPin";
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (SqlCommand command = new SqlCommand(updateQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@NewPin", newPin);
+                        command.Parameters.AddWithValue("@CurrentPin", currentPin);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected == 0)
+                        {
+                            return NotFound(new { error = "Invalid current PIN" });
+                        }
+
+                        return Ok(new { message = "PIN changed successfully" });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }
