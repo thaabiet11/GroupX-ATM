@@ -1,64 +1,50 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from "axios";
 
-function Withdrawal() {
-  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+function Deposit() {
+  const [Deposit, setDeposit] = useState('');
   const [message, setMessage] = useState('');
-  const [balance, setBalance] = useState(0);
 
   function handleAmountChange(event) {
-    setWithdrawalAmount(event.target.value);
+    setDeposit(event.target.value);
   }
 
-  const handleSubmit = async (e) => {
+  const handleDeposit = async (e) =>  {
     e.preventDefault();
-
-    if (withdrawalAmount === '') {
-      alert('Please enter an amount');
-      return;
+  const newUser = {Deposit}
+  const response = await axios.post('https://localhost:7161/api/ATM/transactions/deposit',newUser)
+    if (Deposit > 0) {
+      alert(`Successfully deposited R${Deposit}`);
+      // Perform the deposit logic and update the balance
+    } else {
+      alert('Invalid amount');
     }
-
-    try {
-      const withdrawalData = { withdrawal: parseFloat(withdrawalAmount) };
-      await axios.post('https://localhost:7161/api/ATM/transactions/withdrawal', withdrawalData);
-      alert(`Withdrawn $${withdrawalAmount}`);
-      setWithdrawalAmount('');
-
-      // Fetch the updated balance
-      const response = await axios.get('https://localhost:7161/api/ATM/transactions/withdrawal');
-      const transactions = response.data;
-      if (transactions.length > 0) {
-        const latestTransaction = transactions[transactions.length - 1];
-        setBalance(latestTransaction.Balance);
-      }
-    } catch (error) {
-      alert('Error occurred during withdrawal');
-    }
-  };
+    setDeposit('');
+  }
 
   return (
-    <div className="withdrawal">
-      <h1>Withdrawal</h1>
-      <form onSubmit={handleSubmit}>
+    <div className="deposit">
+      <h1>Deposit Money</h1>
+      <form onSubmit={handleDeposit}>
         <label htmlFor="amount">Amount:</label>
         <input
           type="number"
-          id="amount"
-          value={withdrawalAmount}
+          id="DepositAmount"
+          value={Deposit}
           onChange={handleAmountChange}
-          placeholder="Enter amount to withdraw"
+          placeholder="Enter the amount to deposit"
+          required
         />
-        <button type="submit">Withdraw</button>
+        <button type="submit">Deposit</button>
       </form>
       {message && <p className="message">{message}</p>}
-      <p>Your current balance is: ${balance}</p>
       <ul>
-        <li>
+      <li>
           <a href="/Menu">Exit</a>
         </li>
-      </ul>
+        </ul>
     </div>
   );
 }
 
-export default Withdrawal;
+export default Deposit;
